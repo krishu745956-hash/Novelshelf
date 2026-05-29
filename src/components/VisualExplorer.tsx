@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, startTransition } from "react";
 import { DriveFile, listFolderContents, getFileContent, getFavorites, renameFile, toggleFavorite, deleteFile, duplicateFile, downloadMultipleFiles, downloadFolder, moveFile, createFolder, createEmptyMarkdownFile } from "../lib/drive";
 import { customConfirm, customPrompt, customAlert } from "../lib/dialogs";
-import { Folder, FileText, ChevronRight, LayoutGrid, List, AlignJustify, Star, Trash2, Edit2, Download, Copy, CheckSquare, MoveRight, FolderPlus, FilePlus } from "lucide-react";
+import { Folder, FileText, ChevronRight, LayoutGrid, List, AlignJustify, Star, Trash2, Edit2, Download, Copy, CheckSquare, MoveRight } from "lucide-react";
 import { FolderPicker } from "./FolderPicker";
 import { FolderCard } from "./FolderCard";
 import { FileCard } from "./FileCard";
@@ -32,6 +32,7 @@ export function VisualExplorer({ rootId, onOpenFile, refreshKey, onDataChanged, 
   const [viewMode, setViewMode] = useState<"grid" | "list" | "compact">("grid");
   const [activeTab, setActiveTab] = useState<"explorer" | "favorites">("explorer");
 
+  const loadedStateRef = useRef({ folder: rootId, tab: "explorer" });
   const [snippets, setSnippets] = useState<Record<string, string>>({});
 
   const [selectedIds, setSelectedIdsState] = useState<Set<string>>(new Set());
@@ -336,7 +337,7 @@ export function VisualExplorer({ rootId, onOpenFile, refreshKey, onDataChanged, 
             const id = Array.from(selectedIds)[0];
             const item = items.find(i => i.id === id);
             if (item) {
-              const newName = await customPrompt("Enter new name:", item.name);
+              const newName = await customPrompt("Enter new name:", item.name, "Rename Item");
               if (newName && newName !== item.name) {
                 setItems(prev => prev.map(i => i.id === item.id ? { ...i, name: newName } : i));
                 try {
@@ -360,7 +361,11 @@ export function VisualExplorer({ rootId, onOpenFile, refreshKey, onDataChanged, 
   useEffect(() => {
     let unmounted = false;
     async function load() {
-      setLoading(true);
+      const isNav = loadedStateRef.current.folder !== currentFolderId || loadedStateRef.current.tab !== activeTab;
+      if (isNav) {
+        setLoading(true);
+        loadedStateRef.current = { folder: currentFolderId, tab: activeTab };
+      }
       setSelectedIds(new Set());
       try {
         let fetched: DriveFile[] = [];
@@ -422,11 +427,17 @@ export function VisualExplorer({ rootId, onOpenFile, refreshKey, onDataChanged, 
   };
 
   const handleCreateFolder = async () => {
-    const name = await customPrompt("New folder name:");
+    const name = await customPrompt("New folder name:", "", "New Folder");
     if (!name) return;
     try {
       setLoading(true);
-      await createFolder(name, currentFolderId);
+      const newFolder = await createFolder(name, currentFolderId);
+      // Wait a moment for drive API to settle, then refresh
+      setItems(prev => {
+         const next = [...prev];
+         next.unshift(newFolder);
+         return next;
+      });
       onDataChanged(); // trigger a tree refresh
     } catch (e) {
       customAlert("Failed to create folder");
@@ -436,12 +447,17 @@ export function VisualExplorer({ rootId, onOpenFile, refreshKey, onDataChanged, 
   };
 
   const handleCreateFile = async () => {
-    const name = await customPrompt("New file name (e.g., Note.md):");
+    const name = await customPrompt("New file name (e.g., Note.md):", "", "New File");
     if (!name) return;
     try {
       setLoading(true);
       const finalName = name.endsWith(".md") || name.endsWith(".txt") ? name : name + ".md";
-      await createEmptyMarkdownFile(finalName, currentFolderId);
+      const newFile = await createEmptyMarkdownFile(finalName, currentFolderId);
+      setItems(prev => {
+        const next = [...prev];
+        next.unshift(newFile);
+        return next;
+      });
       onDataChanged();
     } catch (e) {
       customAlert("Failed to create file");
@@ -461,7 +477,7 @@ export function VisualExplorer({ rootId, onOpenFile, refreshKey, onDataChanged, 
 
 
   const onRename = async (item: DriveFile) => {
-    const newName = await customPrompt("Enter new name:", item.name);
+    const newName = await customPrompt("Enter new name:", item.name, "Rename Item");
     if (newName && newName !== item.name) {
       setItems(prev => prev.map(i => i.id === item.id ? { ...i, name: newName } : i));
       try {
@@ -678,16 +694,14 @@ export function VisualExplorer({ rootId, onOpenFile, refreshKey, onDataChanged, 
                 className="flex items-center gap-2 px-3 py-1.5 bg-[var(--surface-color)] text-[var(--text-color)] text-sm font-medium rounded-lg border border-[var(--border-color)]/50 shadow-sm hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                 title="New Folder"
               >
-                <FolderPlus className="w-4 h-4" />
-                <span className="hidden sm:inline">Folder</span>
+                <span>New Folder</span>
               </button>
               <button 
                 onClick={handleCreateFile} 
                 className="flex items-center gap-2 px-3 py-1.5 bg-[var(--surface-color)] text-[var(--text-color)] text-sm font-medium rounded-lg border border-[var(--border-color)]/50 shadow-sm hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                title="New File"
               >
-                <FilePlus className="w-4 h-4" />
-                <span className="hidden sm:inline">File</span>
+                <span>New File</span>
               </button>
             </div>
           )}

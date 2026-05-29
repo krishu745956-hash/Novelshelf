@@ -15,11 +15,11 @@ export function saveSession(token: string, expiresIn?: number) {
     accessToken: token,
     expiresAt: Date.now() + (expiresIn || 3599) * 1000 - 60000, // subtract 1 min for safety
   };
-  sessionStorage.setItem("novelshelf_session", JSON.stringify(session));
+  localStorage.setItem("novelshelf_session", JSON.stringify(session));
 }
 
 export function getSession(): string | null {
-  const stored = sessionStorage.getItem("novelshelf_session");
+  const stored = localStorage.getItem("novelshelf_session");
   if (!stored) return null;
 
   try {
@@ -36,7 +36,7 @@ export function getSession(): string | null {
 }
 
 export function clearSession() {
-  sessionStorage.removeItem("novelshelf_session");
+  localStorage.removeItem("novelshelf_session");
   googleLogout();
   window.dispatchEvent(new Event("novelshelf_session_expired"));
 }

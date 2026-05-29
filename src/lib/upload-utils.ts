@@ -115,9 +115,18 @@ export async function uploadFilesWithHierarchy(
       if (folderCache[currentPath]) {
         currentParentId = await folderCache[currentPath];
       } else {
-        folderCache[currentPath] = createFolder(dir, currentParentId).then(id => {
-          folderCache[currentPath] = id;
-          return id;
+        folderCache[currentPath] = createFolder(dir, currentParentId).then(folder => {
+          tracker["FOLDER_" + folder.id] = {
+            id: folder.id,
+            filename: dir,
+            status: "success",
+            progress: 100,
+            file: folder,
+            fileSize: 0,
+          };
+          onProgressUpdate({ ...tracker });
+          folderCache[currentPath] = folder.id;
+          return folder.id;
         });
         currentParentId = await folderCache[currentPath];
       }

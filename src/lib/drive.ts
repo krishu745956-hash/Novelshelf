@@ -374,10 +374,10 @@ export async function createEmptyMarkdownFile(
 export async function createFolder(
   name: string,
   parentId: string,
-): Promise<string> {
+): Promise<DriveFile> {
   const uniqueName = await getUniqueName(name, true);
   
-  const createData = await request(API_BASE, {
+  const createData = await request(`${API_BASE}?fields=id,name,mimeType,size,createdTime,modifiedTime,parents,starred,trashed`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -386,7 +386,7 @@ export async function createFolder(
       parents: [parentId],
     }),
   });
-  return createData.id;
+  return createData;
 }
 
 export async function duplicateFile(fileId: string, currentName: string, isFolder: boolean): Promise<DriveFile> {

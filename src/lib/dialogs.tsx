@@ -36,7 +36,7 @@ export const customConfirm = (message: string, title = "Confirm"): Promise<boole
   });
 };
 
-export const customPrompt = (message: string, defaultValue = "", title = "Prompt"): Promise<string | null> => {
+export const customPrompt = (message: string, defaultValue = "", title = ""): Promise<string | null> => {
   return new Promise((resolve) => {
     if (requestDialog) {
       requestDialog({ id: ++dialogId, type: 'prompt', title, message, defaultValue, resolve });
@@ -69,7 +69,7 @@ export const DialogProvider = () => {
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-[var(--surface-color)] p-6 rounded-2xl shadow-2xl border border-[var(--border-color)]/50 max-w-sm w-full animate-in zoom-in-95 duration-200">
-        <h3 className="text-lg font-semibold text-[var(--text-color)] mb-2">{dialog.title}</h3>
+        {dialog.title && <h3 className="text-lg font-semibold text-[var(--text-color)] mb-2">{dialog.title}</h3>}
         <p className="text-sm text-[var(--text-secondary)] mb-6">{dialog.message}</p>
         
         {dialog.type === 'prompt' && (
