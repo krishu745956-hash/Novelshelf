@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Lora", "Playfair Display", ui-serif, Georgia, serif;
+  --font-display: "Playfair Display", ui-serif, Georgia, serif;
+  
+  --color-primary: #8b5cf6;
+  --color-primary-hover: #7c3aed;
+  
+  --color-background: #FAF8F5;
+  --color-surface: #FFFFFF;
+  --color-surface-dim: #F2EEE8;
+  --color-on-background: #2A2624;
+  --color-on-surface: #2A2624;
+  --color-on-surface-variant: #6B625B;
+  --color-outline: #E5DFD5;
+
+  --color-dark-background: #141118;
+  --color-dark-surface: #1E1A25;
+  --color-dark-surface-dim: #25202E;
+  --color-dark-on-background: #EAE6EE;
+  --color-dark-on-surface: #EAE6EE;
+  --color-dark-on-surface-variant: #9E96A6;
+  --color-dark-outline: #302A3C;
+}
+
+@layer base {
+  :root {
+    --bg-color: var(--color-background);
+    --text-color: var(--color-on-background);
+    --surface-color: var(--color-surface);
+    --surface-dim-color: var(--color-surface-dim);
+    --border-color: var(--color-outline);
+    --text-secondary: var(--color-on-surface-variant);
+  }
+  
+  .dark {
+    --bg-color: var(--color-dark-background);
+    --text-color: var(--color-dark-on-background);
+    --surface-color: var(--color-dark-surface);
+    --surface-dim-color: var(--color-dark-surface-dim);
+    --border-color: var(--color-dark-outline);
+    --text-secondary: var(--color-dark-on-surface-variant);
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    @apply antialiased transition-colors duration-300;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar { height: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+}
